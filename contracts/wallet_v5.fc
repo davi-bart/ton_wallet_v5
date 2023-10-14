@@ -166,11 +166,6 @@ int pack_address(int wc, int hash) impure asm "SWAP INC XOR"; ;; hash ^ (wc+1)
     ;; We accept two kinds of authenticated messages:
     ;; - 0x6578746E "extn" authenticated by extension
     ;; - 0x7369676E "sign" authenticated by signature
-    if (auth_kind != 0x6578746E) & (auth_kind != 0x7369676E) { ;; "extn" & "sign"
-        ;; ignore all unauthenticated messages
-        return ();
-    }
-
     if (auth_kind == 0x6578746E) { ;; "extn"
         var ds = get_data().begin_parse();
         var (data, extensions) = (ds~load_bits(368), ds~load_dict());
@@ -184,8 +179,7 @@ int pack_address(int wc, int hash) impure asm "SWAP INC XOR"; ;; hash ^ (wc+1)
             return ();
         }
         dispatch_request(body, data, extensions);
-    }
-    if (auth_kind == 0x7369676E) { ;; "sign"
+    } elseif (auth_kind == 0x7369676E) { ;; "sign"
         var ds = get_data().begin_parse();
         var (stored_seqno, stored_subwallet, public_key, extensions) = (ds~load_uint(32), ds~load_uint(80), ds~load_uint(256), ds~load_dict());
         ds.end_parse();
